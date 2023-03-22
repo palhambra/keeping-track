@@ -103,7 +103,7 @@ function rolePrompt() {
       type: "list",
       name: "department",
       message: "Which department is this role going to?",
-      choices: ["list of all departments"]
+      choices: ["list of all departments"] // Reminder : this is a placeholder
     }
   ])
 };
@@ -125,13 +125,13 @@ function employeePrompt() {
       type: "list", // Should make a list with choices from "role" from database
       name: "role", // Match role from database? Same as role from role prompt?
       message: "What is the employee's role?",
-      choices: ["list of all roles"] // Need to add in all roles somehow
+      choices: ["list of all roles"] // Need to add in all roles somehow // Reminder : this is a placeholder
     },
     {
       type: "list",
       name: "manager",
       message: "Who is their manager?",
-      choices: ["list of all managers"]
+      choices: ["list of all managers"] // Reminder : this is a placeholder
     }
   ])
 };
@@ -143,13 +143,13 @@ function updateRolePrompt() {
       type: "list",
       name: "", // Mock up video shows as list but full name, will need to concatenate firstName and lastName some how
       message: "Which employee's role do you want to update?",
-      choices: ["list of employees first & last names"]
+      choices: ["list of employees first & last names"] // Reminder : this is a placeholder
     },
     {
       type: "list",
       name: "role",
       message: "Which role would you like to update them to?",
-      choices: ["list of all roles"]
+      choices: ["list of all roles"] // Reminder : this is a placeholder
     }
   ])
 }
