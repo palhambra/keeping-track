@@ -6,7 +6,7 @@ const inquirer = require('inquirer');
 //     host: 'localhost',
 //     user: 'root',
 //     password: '',
-
+//     database: 'employee_db'
 //   }
 // );
 optionsPrompt();
