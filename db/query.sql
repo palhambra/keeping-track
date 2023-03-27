@@ -1,8 +1,13 @@
-INSERT INTO department (name)
-  VALUES ("Payroll");
-  
-SELECT * FROM department;
+-- INSERT INTO department (name)
+--   VALUES ("Payroll");
 
-SELECT * FROM role;
+-- SELECT * FROM department;
 
-SELECT * FROM employee;
+-- SELECT * FROM role;
+
+-- SELECT * FROM employee;
+
+
+SELECT role.title, department.name AS department_name, role.salary
+FROM role
+JOIN department ON role.department_id = department.id;

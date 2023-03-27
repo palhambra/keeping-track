@@ -83,7 +83,7 @@ function updateDepartment() {
 };
 // TODO : Choose view all roles, present job title, role id, department role belongs to, and salary for role
 function viewRoles() {
-db.query(`SELECT * FROM role`, function (err, results) {
+db.query(`SELECT role.title, department.name AS department_name, role.salary FROM role JOIN department ON role.department_id = department.id;`, function (err, results) {
   // console.log(results);
   console.table(results);
   optionsPrompt();
