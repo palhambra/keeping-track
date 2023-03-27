@@ -1,6 +1,9 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
+const cTable = require('console.table');
+let departmentList = []
 require('dotenv').config();
+
 const db = mysql.createConnection(
   {
     host: 'localhost',
@@ -27,7 +30,7 @@ function optionsPrompt() {
   }
   ])
   .then((data) => {
-    console.log(data)
+    // console.log(data)
     switch(data.options) {
       case "View All Departments":
         viewDepartments();
@@ -46,7 +49,7 @@ function optionsPrompt() {
         break;
 
       case "Add Role":
-        rolePrompt();
+        rolePrompt(departmentList);
         break;
 
       case "Add Employee":
@@ -62,17 +65,38 @@ function optionsPrompt() {
 
 // TODO : Choose view all departments, present table showing department names and department ids
 function viewDepartments() {
-
+db.query(`SELECT * FROM department`, function (err, results) {
+  // console.log(results);
+  console.table(results);
+  optionsPrompt();
+})
 };
-
+function updateDepartment() {
+  db.query(`SELECT * FROM department`, function (err, results){
+    // for (var i = 0; i < results.length; i++) {
+    // departmentList.push(results[i].name);
+    console.log(results)
+    departmentList = results.map(department => department.name)
+    console.log(departmentList)
+    // }
+  });
+};
 // TODO : Choose view all roles, present job title, role id, department role belongs to, and salary for role
 function viewRoles() {
-
+db.query(`SELECT * FROM role`, function (err, results) {
+  // console.log(results);
+  console.table(results);
+  optionsPrompt();
+})
 };
 
 // TODO : Choose view all employees, present employee data, including employee ids, first names, last names, job titles, departments, salaries, and manager of employee
 function viewEmployees() {
-  
+  db.query(`SELECT * FROM employee`, function (err, results) {
+    // console.log(results);
+    console.table(results);
+    optionsPrompt();
+  })
 };
 
 // TODO : Choose add department, prompted to enter name of department, then add department to database
@@ -84,10 +108,21 @@ function departmentPrompt() {
       message: "What is the name of the department you would like to add?"
     }
   ])
+  .then((data) => {
+    console.log(`${data.department} has been added`)
+    db.query(`INSERT INTO department (name) VALUES ("${data.department}")`, function (err) {
+
+      updateDepartment();
+      optionsPrompt();
+    });
+    
+  })
 };
 
+
+
 // TODO : Choose add role, prompted to enter name, salary and department for the role, then add role to database
-function rolePrompt() {
+function rolePrompt(departmentList) {
   inquirer.prompt([
     {
       type: "input",
@@ -103,9 +138,15 @@ function rolePrompt() {
       type: "list",
       name: "department",
       message: "Which department is this role going to?",
-      choices: ["list of all departments"] // Reminder : this is a placeholder
+      choices: departmentList // Reminder : this is a placeholder
     }
   ])
+  .then((data) => {
+    console.log(`${data.role} has been added`)
+    console.log(data)
+    // db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${data.role}", ${data.salary}, "${data.department}")`)
+    optionsPrompt;
+  })
 };
 
 // TODO : Choose add employee, prompted to enter the employee's first name, last name, role, and manager, then add employee to database
