@@ -1,7 +1,8 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const cTable = require('console.table');
-let departmentList = []
+let departmentList = [];
+let roleList = [];
 require('dotenv').config();
 
 const db = mysql.createConnection(
@@ -71,24 +72,36 @@ db.query(`SELECT * FROM department`, function (err, results) {
   optionsPrompt();
 })
 };
+
 function updateDepartment() {
   db.query(`SELECT * FROM department`, function (err, results){
     // for (var i = 0; i < results.length; i++) {
     // departmentList.push(results[i].name);
-    console.log(results)
+    // console.log(results)
+    
     departmentList = results.map(department => department.name)
-    console.log(departmentList)
+    // console.log(departmentList)
     // }
   });
 };
 // TODO : Choose view all roles, present job title, role id, department role belongs to, and salary for role
 function viewRoles() {
-db.query(`SELECT role.title, department.name AS department_name, role.salary FROM role JOIN department ON role.department_id = department.id;`, function (err, results) {
-  // console.log(results);
+// db.query(`SELECT role.title, department.name AS department_name, role.salary FROM role JOIN department ON role.department_id = department.id;`, function (err, results) {
+  db.query(`SELECT * FROM role`, function (err, results) {
+
+// console.log(results);
   console.table(results);
   optionsPrompt();
 })
 };
+
+function updateRoles() {
+  db.query(`SELECT * FROM role`, function (err, results) {
+    console.log(results)
+    roleList = results.map(role => role.title)
+    console.log(roleList)
+  })
+}
 
 // TODO : Choose view all employees, present employee data, including employee ids, first names, last names, job titles, departments, salaries, and manager of employee
 function viewEmployees() {
@@ -147,9 +160,17 @@ function rolePrompt(departmentList) {
   ])
   .then((data) => {
     console.log(`${data.role} has been added`)
-    console.log(data)
-    // db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${data.role}", ${data.salary}, "${data.department}")`)
-    optionsPrompt;
+    // console.log(data)
+    db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${data.role}", "${data.salary}", "${data.id}" )`, function (err, results) {
+      console.log(err)
+      db.query(`INSERT INTO department (name) VALUES ("${data.department}")`, function (err, results){
+        updateRoles();
+      optionsPrompt();
+      })
+      
+    });
+    // db.query(`INSERT INTO department (name) VALUES ("${data.department}")`);
+    
   })
 };
 
