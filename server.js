@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const cTable = require('console.table');
-let departmentList = [];
+let departmentList = ["Test"];
 let roleList = [];
 require('dotenv').config();
 
@@ -75,8 +75,6 @@ db.query(`SELECT * FROM department`, function (err, results) {
 
 function updateDepartment() {
   db.query(`SELECT * FROM department`, function (err, results){
-    // for (var i = 0; i < results.length; i++) {
-    // departmentList.push(results[i].name);
     // console.log(results)
     
     departmentList = results.map(department => department.name)
@@ -140,35 +138,40 @@ function departmentPrompt() {
 
 // TODO : Choose add role, prompted to enter name, salary and department for the role, then add role to database
 function rolePrompt(departmentList) {
-  inquirer.prompt([
-    {
-      type: "input",
-      name: "role",
-      message: "What is the name of the role you would like to add?"
-    },
-    {
-      type: "input",
-      name: "salary",
-      message: "What is the salary for this role?"
-    },
-    {
-      type: "list",
-      name: "department",
-      message: "Which department is this role going to?",
-      choices: departmentList // Reminder : this is a placeholder
-    }
-  ])
-  .then((data) => {
-    console.log(`${data.role} has been added`)
-    // console.log(data)
-    db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${data.role}", "${data.salary}", "${data.id}" )`, function (err, results) {
-      console.log(err)
-      db.query(`INSERT INTO department (name) VALUES ("${data.department}")`, function (err, results){
-        updateRoles();
-      optionsPrompt();
-      })
+  db.query(`SELECT * FROM department`, function (err, results){
+       
+    departmentList = results.map(department => department.name)
+    
+    inquirer.prompt([
+      {
+        type: "input",
+        name: "role",
+        message: "What is the name of the role you would like to add?"
+      },
+      {
+        type: "input",
+        name: "salary",
+        message: "What is the salary for this role?"
+      },
+      {
+        type: "list",
+        name: "department",
+        message: "Which department is this role going to?",
+        choices: departmentList // Reminder : this is a placeholder
+      }
+    ])
+    .then((data) => {
+      console.log(`${data.role} has been added`)
+      console.log(data)
+      db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${data.role}", "${data.salary}", "${data.id}" )`, function (err, results) {
+        console.log(err)
+        db.query(`INSERT INTO department (name) VALUES ("${data.department}")`, function (err, results){
+          // updateRoles();
+          optionsPrompt();
+        })
+        })
       
-    });
+    })
     // db.query(`INSERT INTO department (name) VALUES ("${data.department}")`);
     
   })
@@ -200,6 +203,8 @@ function employeePrompt() {
       choices: ["list of all managers"] // Reminder : this is a placeholder
     }
   ])
+  .then((data) =>
+  console.log(data))
 };
 
 // TODO : Choose update an employee role, prompted to select an employee to update, and update their new role, then update info on database
