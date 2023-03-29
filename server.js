@@ -1,8 +1,10 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const cTable = require('console.table');
-let departmentList = ["Test"];
+let departmentList = [];
 let roleList = [];
+let managerList;
+let employeeList;
 require('dotenv').config();
 
 const db = mysql.createConnection(
@@ -13,7 +15,22 @@ const db = mysql.createConnection(
     database: process.env.DB_NAME
   }
 );
-optionsPrompt();
+
+db.connect(function (err) {
+  if (err) throw err;
+  console.log(`
+  _______  __   __  _______  ___      _______  __   __  _______  _______    _______  ______    _______  _______  ___   _  _______  ______   
+ |       ||  |_|  ||       ||   |    |       ||  | |  ||       ||       |  |       ||    _ |  |   _   ||       ||   | | ||       ||    _ |  
+ |    ___||       ||    _  ||   |    |   _   ||  |_|  ||    ___||    ___|  |_     _||   | ||  |  |_|  ||       ||   |_| ||    ___||   | ||  
+ |   |___ |       ||   |_| ||   |    |  | |  ||       ||   |___ |   |___     |   |  |   |_||_ |       ||       ||      _||   |___ |   |_||_ 
+ |    ___||       ||    ___||   |___ |  |_|  ||_     _||    ___||    ___|    |   |  |    __  ||       ||      _||     |_ |    ___||    __  |
+ |   |___ | ||_|| ||   |    |       ||       |  |   |  |   |___ |   |___     |   |  |   |  | ||   _   ||     |_ |    _  ||   |___ |   |  | |
+ |_______||_|   |_||___|    |_______||_______|  |___|  |_______||_______|    |___|  |___|  |_||__| |__||_______||___| |_||_______||___|  |_|
+ `)
+ optionsPrompt();
+})
+
+
 function optionsPrompt() {
   inquirer.prompt([{
     type: "list",
@@ -26,7 +43,8 @@ function optionsPrompt() {
       "Add Department",
       "Add Role",
       "Add Employee",
-      "Update Employee Role"
+      "Update Employee Role",
+      "Quit"
     ]
   }
   ])
@@ -60,6 +78,9 @@ function optionsPrompt() {
       case "Update Employee Role":
         updateRolePrompt();
         break;
+      
+      case "Quit":
+        db.end();
     }
   })
 };
@@ -95,9 +116,9 @@ function viewRoles() {
 
 function updateRoles() {
   db.query(`SELECT * FROM role`, function (err, results) {
-    console.log(results)
+    // console.log(results)
     roleList = results.map(role => role.title)
-    console.log(roleList)
+    // console.log(roleList)
   })
 }
 
@@ -139,9 +160,12 @@ function departmentPrompt() {
 // TODO : Choose add role, prompted to enter name, salary and department for the role, then add role to database
 function rolePrompt(departmentList) {
   db.query(`SELECT * FROM department`, function (err, results){
-       
-    departmentList = results.map(department => department.name)
-    
+      //  console.log(results)
+    departmentList = results.map(department => ({
+      name: `${department.name}`,
+      value: department.id
+    }));
+    // console.log(departmentList)
     inquirer.prompt([
       {
         type: "input",
@@ -162,23 +186,36 @@ function rolePrompt(departmentList) {
     ])
     .then((data) => {
       console.log(`${data.role} has been added`)
-      console.log(data)
-      db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${data.role}", "${data.salary}", "${data.id}" )`, function (err, results) {
+      // console.log(data)
+      db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${data.role}", "${data.salary}", "${data.department}" )`, function (err, results) {
         console.log(err)
-        db.query(`INSERT INTO department (name) VALUES ("${data.department}")`, function (err, results){
-          // updateRoles();
           optionsPrompt();
-        })
+        // })
         })
       
     })
-    // db.query(`INSERT INTO department (name) VALUES ("${data.department}")`);
+    
     
   })
 };
 
 // TODO : Choose add employee, prompted to enter the employee's first name, last name, role, and manager, then add employee to database
 function employeePrompt() {
+  db.query(`SELECT * FROM role`, function (err, results){
+    // console.log(results)
+ roleList = results.map(role => ({
+   name: `${role.title}`,
+   value: role.id
+ }));
+//  console.log(roleList)
+  db.query(`SELECT * FROM employee WHERE id IN (7,9)`, function (err, results){
+    // console.log(results)
+    managerList = results.map(employee => ({
+      name: `${employee.first_name} ${employee.last_name}`,
+      value: employee.id
+    }))
+    // console.log(managerList)
+  
   inquirer.prompt([
     {
       type: "input",
@@ -194,34 +231,66 @@ function employeePrompt() {
       type: "list", // Should make a list with choices from "role" from database
       name: "role", // Match role from database? Same as role from role prompt?
       message: "What is the employee's role?",
-      choices: ["list of all roles"] // Need to add in all roles somehow // Reminder : this is a placeholder
+      choices: roleList // Need to add in all roles somehow // Reminder : this is a placeholder
     },
     {
       type: "list",
       name: "manager",
       message: "Who is their manager?",
-      choices: ["list of all managers"] // Reminder : this is a placeholder
+      choices: managerList // Reminder : this is a placeholder
     }
   ])
-  .then((data) =>
-  console.log(data))
+
+  .then((data) => {
+  // console.log(data)
+  db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${data.firstName}", "${data.lastName}", "${data.role}", "${data.manager}" )`, function (err, results) {
+    console.log(err)
+      optionsPrompt();
+  })
+  })
+})
+})
 };
 
 // TODO : Choose update an employee role, prompted to select an employee to update, and update their new role, then update info on database
 function updateRolePrompt() {
+  db.query(`SELECT * FROM employee`, function (err, results) {
+    // console.log(results)
+    employeeList = results.map(employee => ({
+      name: `${employee.first_name} ${employee.last_name}`,
+      value: `${employee.id}`
+    }))
+    // console.log(employeeList)
+    db.query(`SELECT * FROM role`, function (err, results){
+      // console.log(results)
+   roleList = results.map(role => ({
+     name: `${role.title}`,
+     value: role.id
+   }));
   inquirer.prompt([
     {
       type: "list",
-      name: "", // Mock up video shows as list but full name, will need to concatenate firstName and lastName some how
+      name: "employee", // Mock up video shows as list but full name, will need to concatenate firstName and lastName some how
       message: "Which employee's role do you want to update?",
-      choices: ["list of employees first & last names"] // Reminder : this is a placeholder
+      choices: employeeList // Reminder : this is a placeholder
     },
     {
       type: "list",
       name: "role",
       message: "Which role would you like to update them to?",
-      choices: ["list of all roles"] // Reminder : this is a placeholder
+      choices: roleList // Reminder : this is a placeholder
     }
   ])
-}
+  .then((data) => {
+    // console.log(data)
+    db.query(`UPDATE employee SET role_id = ${data.role} WHERE id = (${data.employee})`, function (err, results){
+      db.query(`SELECT * FROM employee`, function (err, results) {
+        // console.log(results)
+      optionsPrompt();
+    })
+  })
+})
+  })
+  } )}
+
 
